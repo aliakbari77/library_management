@@ -62,7 +62,7 @@ class Book(models.Model):
                                         related_name="favourite", 
                                         default=None, 
                                         blank=True)
-    name = models.CharField(max_length=100)
+    title = models.CharField(max_length=100)
     published_date = models.DateTimeField(default=None)
     updated_at = models.DateTimeField(auto_now=True)
     price = models.FloatField(null=True, blank=True)
