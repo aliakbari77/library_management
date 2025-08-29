@@ -10,6 +10,7 @@ class Member(AbstractUser):
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
 
+
 class Category(models.Model):
     class CategoryChoices(models.TextChoices):
         BIOGRAPHIE = "BIO", _("Biographie")
@@ -31,7 +32,8 @@ class Category(models.Model):
     
     def __str__(self):
         return self.name
-    
+
+ 
 class Author(models.Model):
     first_name = models.CharField(max_length=100, verbose_name=_("First Name"))
     last_name = models.CharField(max_length=100, verbose_name="Last Name")
@@ -40,9 +42,16 @@ class Author(models.Model):
     def __str__(self):
         return f'{self.first_name} {self.last_name}'
 
+
+class Publisher(models.Model):
+    name = models.CharField(max_length=100)
+    website = models.URLField()
+
+
 class Book(models.Model):
     category = models.ManyToManyField(Category, related_name='book')
-    author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='book')
+    authors = models.ManyToManyField(Author, on_delete=models.CASCADE, related_name='book')
+    publisher = models.ForeignKey(Publisher, on_delete=models.CASCADE, related_name="publisher")
     favourites = models.ManyToManyField(Member, 
                                         related_name="favourite", 
                                         default=None, 
