@@ -53,8 +53,11 @@ class Publisher(models.Model):
 
 class Book(models.Model):
     category = models.ManyToManyField(Category, related_name='book')
-    authors = models.ManyToManyField(Author, on_delete=models.CASCADE, related_name='book')
-    publisher = models.ForeignKey(Publisher, on_delete=models.CASCADE, related_name="publisher")
+    authors = models.ManyToManyField(Author, related_name='book')
+    publisher = models.ForeignKey(Publisher, 
+                                  on_delete=models.CASCADE, 
+                                  related_name="publisher",
+                                  default=None)
     favourites = models.ManyToManyField(Member, 
                                         related_name="favourite", 
                                         default=None, 
