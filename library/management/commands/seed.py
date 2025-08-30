@@ -1,5 +1,7 @@
 import random
+import requests
 from datetime import timedelta
+from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from faker import Faker
@@ -10,7 +12,7 @@ fake = Faker()
 
 
 class Command(BaseCommand):
-    help = "Seed the database with random test data"
+    help = "Seed the database with random test data including images"
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -98,8 +100,8 @@ class Command(BaseCommand):
     # 5. Create Books
     # -------------------------
     def create_books(self, count):
-        book_titles = set()
         self.books = []
+        book_titles = set()
 
         for _ in range(count):
             # Ensure unique titles
@@ -108,27 +110,32 @@ class Command(BaseCommand):
                 title = fake.sentence(nb_words=4).replace(".", "")
             book_titles.add(title)
 
-            book, _ = Book.objects.get_or_create(
+            # Download a random image from Lorem Picsum
+            image_url = f"https://picsum.photos/400/600?random={random.randint(1, 10000)}"
+            image_content = requests.get(image_url).content
+
+            book = Book.objects.create(
                 title=title,
                 publisher=random.choice(self.publishers),
-                defaults={
-                    "published_date": timezone.now() - timedelta(days=random.randint(100, 3000)),
-                    "price": round(random.uniform(10, 100), 2),
-                    "pages": random.randint(100, 1000),
-                    "is_available": random.choice([True, True, False]),
-                    "summary": fake.paragraph(nb_sentences=5),
-                },
+                published_date=timezone.now() - timedelta(days=random.randint(100, 3000)),
+                price=round(random.uniform(10, 100), 2),
+                pages=random.randint(100, 1000),
+                is_available=random.choice([True, True, False]),
+                summary=fake.paragraph(nb_sentences=5),
             )
 
-            # Random categories
+            # Save the image to the picture field
+            book.picture.save(f"{title}.jpg", ContentFile(image_content), save=True)
+
+            # Add random categories
             random_cats = random.sample(self.categories, k=random.randint(1, 3))
             book.category.set(random_cats)
 
-            # Random authors
+            # Add random authors
             random_auths = random.sample(self.authors, k=random.randint(1, 3))
             book.authors.set(random_auths)
 
-            # Random favourites
+            # Add random favourites
             random_members = random.sample(self.members, k=random.randint(0, min(5, len(self.members))))
             book.favourites.set(random_members)
 

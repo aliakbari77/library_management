@@ -1,6 +1,7 @@
 <h1>Book</h1>
 {% for book in books %}
   <h2>{{ book.title }}</h2>
+  <img src="{{ book.picture.url }}" alt="{{ book.picture.url }}">
   <p><strong>Authors:</strong>
       {% for author in book.authors.all %}
         {{ author.first_name }} {{ author.last_name }}{% if not forloop.last %}, {% endif %}

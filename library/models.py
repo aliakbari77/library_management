@@ -68,7 +68,8 @@ class Book(models.Model):
     price = models.FloatField(null=True, blank=True)
     pages = models.PositiveIntegerField(null=True, blank=True)
     is_available = models.BooleanField(default=True)
-    summary = models.TextField(default=None)
+    summary = models.TextField(default=None, blank=True, null=True)
+    picture = models.FileField(upload_to='uploads/images/library/', blank=True, null=True)
 
     def __str__(self):
-        return self.name
+        return self.title
