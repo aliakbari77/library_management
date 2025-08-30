@@ -2,49 +2,59 @@ import random
 from datetime import timedelta
 from django.core.management.base import BaseCommand
 from django.utils import timezone
+from faker import Faker
 
 from library.models import Member, Category, Author, Publisher, Book
 
+fake = Faker()
+
 
 class Command(BaseCommand):
-    help = "Seed the database with initial data"
+    help = "Seed the database with random test data"
 
-    def handle(self, *args, **kwargs):
+    def add_arguments(self, parser):
+        parser.add_argument(
+            "--reset",
+            action="store_true",
+            help="Delete existing data before seeding",
+        )
+
+    def handle(self, *args, **options):
+        if options["reset"]:
+            self.stdout.write(self.style.WARNING("🗑 Clearing old data..."))
+            Book.objects.all().delete()
+            Author.objects.all().delete()
+            Publisher.objects.all().delete()
+            Member.objects.all().delete()
+
         self.stdout.write(self.style.WARNING("🚀 Seeding database..."))
 
-        self.create_members()
+        self.create_members(50)
         self.create_categories()
-        self.create_authors()
-        self.create_publishers()
-        self.create_books()
+        self.create_authors(100)
+        self.create_publishers(100)
+        self.create_books(200)
 
         self.stdout.write(self.style.SUCCESS("🎉 Database successfully seeded!"))
 
     # -------------------------
     # 1. Create Members
     # -------------------------
-    def create_members(self):
-        members_data = [
-            {"user_name": "john_doe", "first_name": "John", "last_name": "Doe"},
-            {"user_name": "jane_smith", "first_name": "Jane", "last_name": "Smith"},
-            {"user_name": "alice_johnson", "first_name": "Alice", "last_name": "Johnson"},
-            {"user_name": "michael_brown", "first_name": "Michael", "last_name": "Brown"},
-        ]
-
+    def create_members(self, count):
         self.members = []
-        for data in members_data:
+        for _ in range(count):
+            username = fake.user_name()
             member, _ = Member.objects.get_or_create(
-                username=data["user_name"],
+                username=username,
                 defaults={
-                    "first_name": data["first_name"],
-                    "last_name": data["last_name"],
-                    "user_name": data["user_name"],
-                    "email": f"{data['user_name']}@example.com",
-                    "password": "pbkdf2_sha256$260000$dummy$dummyhash"
-                }
+                    "user_name": username,
+                    "first_name": fake.first_name(),
+                    "last_name": fake.last_name(),
+                    "email": fake.email(),
+                    "password": "pbkdf2_sha256$260000$dummy$dummyhash",
+                },
             )
             self.members.append(member)
-
         self.stdout.write(self.style.SUCCESS(f"✅ Created {len(self.members)} members."))
 
     # -------------------------
@@ -60,21 +70,13 @@ class Command(BaseCommand):
     # -------------------------
     # 3. Create Authors
     # -------------------------
-    def create_authors(self):
-        authors_data = [
-            ("George", "Orwell", "george.orwell@example.com"),
-            ("J.K.", "Rowling", "jk.rowling@example.com"),
-            ("Isaac", "Asimov", "isaac.asimov@example.com"),
-            ("Stephen", "King", "stephen.king@example.com"),
-            ("Yuval", "Harari", "yuval.harari@example.com"),
-        ]
-
+    def create_authors(self, count):
         self.authors = []
-        for first, last, email in authors_data:
+        for _ in range(count):
             author, _ = Author.objects.get_or_create(
-                first_name=first,
-                last_name=last,
-                email=email
+                first_name=fake.first_name(),
+                last_name=fake.last_name(),
+                email=fake.unique.email(),
             )
             self.authors.append(author)
         self.stdout.write(self.style.SUCCESS(f"✅ Created {len(self.authors)} authors."))
@@ -82,52 +84,52 @@ class Command(BaseCommand):
     # -------------------------
     # 4. Create Publishers
     # -------------------------
-    def create_publishers(self):
-        publishers_data = [
-            ("Penguin Books", "https://www.penguin.co.uk"),
-            ("HarperCollins", "https://www.harpercollins.com"),
-            ("Simon & Schuster", "https://www.simonandschuster.com"),
-            ("Random House", "https://www.randomhouse.com"),
-        ]
-
+    def create_publishers(self, count):
         self.publishers = []
-        for name, url in publishers_data:
-            publisher, _ = Publisher.objects.get_or_create(name=name, website=url)
+        for _ in range(count):
+            publisher, _ = Publisher.objects.get_or_create(
+                name=fake.company(),
+                website=fake.url(),
+            )
             self.publishers.append(publisher)
         self.stdout.write(self.style.SUCCESS(f"✅ Created {len(self.publishers)} publishers."))
 
     # -------------------------
     # 5. Create Books
     # -------------------------
-    def create_books(self):
-        book_names = [
-            "1984", "Harry Potter and the Philosopher's Stone", "Foundation",
-            "The Shining", "Sapiens", "Animal Farm", "It", "Homo Deus"
-        ]
-
+    def create_books(self, count):
+        book_titles = set()
         self.books = []
-        for name in book_names:
+
+        for _ in range(count):
+            # Ensure unique titles
+            title = fake.sentence(nb_words=4).replace(".", "")
+            while title in book_titles:
+                title = fake.sentence(nb_words=4).replace(".", "")
+            book_titles.add(title)
+
             book, _ = Book.objects.get_or_create(
-                name=name,
+                title=title,
                 publisher=random.choice(self.publishers),
                 defaults={
                     "published_date": timezone.now() - timedelta(days=random.randint(100, 3000)),
-                    "price": round(random.uniform(10, 50), 2),
-                    "pages": random.randint(150, 800),
+                    "price": round(random.uniform(10, 100), 2),
+                    "pages": random.randint(100, 1000),
                     "is_available": random.choice([True, True, False]),
-                }
+                    "summary": fake.paragraph(nb_sentences=5),
+                },
             )
 
-            # Add random categories
+            # Random categories
             random_cats = random.sample(self.categories, k=random.randint(1, 3))
             book.category.set(random_cats)
 
-            # Add random authors
-            random_auths = random.sample(self.authors, k=random.randint(1, 2))
+            # Random authors
+            random_auths = random.sample(self.authors, k=random.randint(1, 3))
             book.authors.set(random_auths)
 
-            # Add random favourites
-            random_members = random.sample(self.members, k=random.randint(0, len(self.members)))
+            # Random favourites
+            random_members = random.sample(self.members, k=random.randint(0, min(5, len(self.members))))
             book.favourites.set(random_members)
 
             self.books.append(book)

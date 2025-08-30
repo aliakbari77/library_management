@@ -1,6 +1,13 @@
 <h1>Book</h1>
 {% for book in books %}
   <h2>{{ book.title }}</h2>
-  <p>Author: {{ book.author }}</p>
+  <p><strong>Authors:</strong>
+      {% for author in book.authors.all %}
+        {{ author.first_name }} {{ author.last_name }}{% if not forloop.last %}, {% endif %}
+      {% empty %}
+        <em>No authors available</em>
+      {% endfor %}
+    </p>
   <p>Published: {{ book.published_date }}</p>
-{% endfor %}P
+  <p>Summary: {{ book.summary }}</p>
+{% endfor %}
