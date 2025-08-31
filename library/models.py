@@ -63,13 +63,16 @@ class Book(models.Model):
                                         default=None, 
                                         blank=True)
     title = models.CharField(max_length=100)
-    published_date = models.DateTimeField(default=None)
+    published_date = models.DateField(default=None)
     updated_at = models.DateTimeField(auto_now=True)
     price = models.FloatField(null=True, blank=True)
     pages = models.PositiveIntegerField(null=True, blank=True)
     is_available = models.BooleanField(default=True)
     summary = models.TextField(default=None, blank=True, null=True)
-    picture = models.FileField(upload_to='uploads/images/library/', blank=True, null=True)
+    picture = models.FileField(upload_to='uploads/images/library/', 
+                               blank=True, 
+                               null=True, 
+                               default=None)
 
     def __str__(self):
         return self.title

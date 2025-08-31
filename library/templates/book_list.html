@@ -1,7 +1,10 @@
 <h1>Book</h1>
+<a href="add/">add book</a>
 {% for book in books %}
   <h2>{{ book.title }}</h2>
+  {% if book.picture %}
   <img src="{{ book.picture.url }}" alt="{{ book.picture.url }}">
+  {% endif %}
   <p><strong>Authors:</strong>
       {% for author in book.authors.all %}
         {{ author.first_name }} {{ author.last_name }}{% if not forloop.last %}, {% endif %}
