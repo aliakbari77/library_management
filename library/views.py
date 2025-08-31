@@ -52,3 +52,10 @@ class BookDetailView(View):
     def get(self, request, book_id, *args, **kwargs):
         book = Book.objects.get(id=book_id)
         return render(request, 'book_detail.html', {'book': book})
+    
+
+class BookDeleteView(View):
+    def get(self, request, book_id, *args, **kwargs):
+        book = Book.objects.get(id=book_id)
+        book.delete()
+        return redirect("book-list")    

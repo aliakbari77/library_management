@@ -4,6 +4,7 @@
   <a href="detail/{{ book.id }}/">
     <h2>{{ book.title }}</h2>
   </a>
+  <a href="delete/{{ book.id }}/">Delete</a>
   {% if book.picture %}
   <img src="{{ book.picture.url }}" alt="{{ book.picture.url }}">
   {% endif %}
