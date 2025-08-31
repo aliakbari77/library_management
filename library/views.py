@@ -16,6 +16,7 @@ class BookListView(View):
         return render(request, "book_list.html", 
                       {'books': books})
     
+
 class BookAddView(View):
     def get(self, request, *args, **kwargs):
         book_form = BookForm()
@@ -29,3 +30,19 @@ class BookAddView(View):
         else:
             return render(request, 'book_form.html', 
                           {'form': book_form})
+
+
+class BookEditView(View):
+    def get(self, request, book_id, *args, **kwargs):
+        book = Book.objects.get(id=book_id)
+        book_form = BookForm(instance=book)
+        return render(request, 'book_form.html', {'book': book, 'form': book_form})
+
+    def post(self, request, book_id, *args, **kwargs):
+        book = Book.objects.get(id=book_id)
+        book_form = BookForm(request.POST, request.FILES, instance=book)
+        if book_form.is_valid():
+            book_form.save()
+            return redirect("book-list")
+        else:
+            return render(request, 'book_form.html', {'book': book, 'form': book_form})
