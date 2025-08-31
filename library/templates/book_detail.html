@@ -1,0 +1,13 @@
+<h1>{{ book.title }}</h1>
+{% if book.picture %}
+  <img src="{{ book.picture.url }}" alt="{{ book.picture.url }}">
+{% endif %}
+<p><strong>Authors:</strong>
+    {% for author in book.authors.all %}
+      {{ author.first_name }} {{ author.last_name }}{% if not forloop.last %}, {% endif %}
+    {% empty %}
+      <em>No authors available</em>
+    {% endfor %}
+  </p>
+<p>Published: {{ book.published_date }}</p>
+<p>Summary: {{ book.summary }}</p>

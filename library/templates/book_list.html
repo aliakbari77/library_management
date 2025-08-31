@@ -1,7 +1,7 @@
 <h1>Book</h1>
 <a href="add/">add book</a>
 {% for book in books %}
-  <a href="{{ book.id }}/">
+  <a href="detail/{{ book.id }}/">
     <h2>{{ book.title }}</h2>
   </a>
   {% if book.picture %}
