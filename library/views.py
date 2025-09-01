@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.views.generic import ListView, CreateView, View
 from django.shortcuts import redirect
 from django.contrib.auth import authenticate, login, logout
+from django.http.response import HttpResponse
 
 from library.filters import BookFilter
 from library.forms import BookForm, CategoryForm, LoginForm
@@ -125,3 +126,20 @@ class FavouriteBooks(View):
         return render(request, 'book_fav.html', {
             'books': favourite_books
         })
+
+
+class AddFavouriteBook(View):
+    def get(self, request, book_id, *args, **kwargs):
+        if request.user.is_authenticated:
+            book = Book.objects.get(id=book_id)
+            book.favourites.add(request.user)
+            return redirect('book-list')
+        return HttpResponse("Unauthorized", status=401)
+
+class RemoveFavouriteBook(View):
+    def get(self, request, book_id, *args, **kwargs):
+        if request.user.is_authenticated:
+            book = Book.objects.get(id=book_id)
+            book.favourites.remove(request.user)
+            return redirect('book-list')
+        return HttpResponse("Unauthorized", status=401)
