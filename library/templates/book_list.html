@@ -32,14 +32,15 @@
   <a href="{% url 'book-detail' book.pk %}">
     <h2>{{ book.title }}</h2>
   </a>
-  {% if request.user.is_authenticated %}
-    <a href="{% url 'book-delete' book.pk %}">Delete</a>
-    {% if user not in book.favourites.all %}
-      <a href="{% url 'book-favourite-add' book.pk %}">Add to favourites</a>
-    {% elif user in book.favourites.all %}
-      <a href="{% url 'book-favourite-remove' book.pk %}">Remove from favourites</a>
-    {% endif %}
-  {% endif %}
+  <button 
+      class="fav-btn" 
+      data-book-id="{{ book.id }}">
+      {% if user in book.favourites.all %}
+          Remove from favourites
+      {% else %}
+          Add to favourites
+      {% endif %}
+  </button>
   {% if book.picture %}
   <img src="{{ book.picture.url }}" alt="{{ book.picture.url }}">
   {% endif %}
@@ -61,3 +62,36 @@
   <p>Summary: {{ book.summary }}</p>
   <p><strong>Price:</strong> {{ book.price }}</p>
 {% endfor %}
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    document.querySelectorAll(".fav-btn").forEach(button => {
+        button.addEventListener("click", function() {
+            const bookId = this.dataset.bookId;
+            const csrfToken = "{{ csrf_token }}";
+            const url = `favourite/toggle/${bookId}/`;
+
+            fetch(url, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": csrfToken,
+                    "Content-Type": "application/json",
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (data.is_favourite) {
+                        this.textContent = "Remove from favourites";
+                    } else {
+                        this.textContent = "Add to favourites";
+                    }
+                } else {
+                    alert(data.message || "Something went wrong");
+                }
+            })
+            .catch(error => console.error("Error:", error));
+        });
+    });
+});
+</script>

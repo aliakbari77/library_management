@@ -1,3 +1,45 @@
 {% for book in books %}
 <h1>{{ book.title }}</h1>
+    <button 
+      class="fav-btn" 
+      data-book-id="{{ book.id }}">
+      {% if user in book.favourites.all %}
+          Remove from favourites
+      {% else %}
+          Add to favourites
+      {% endif %}
+  </button>
 {% endfor %}
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    document.querySelectorAll(".fav-btn").forEach(button => {
+        button.addEventListener("click", function() {
+            const bookId = this.dataset.bookId;
+            const csrfToken = "{{ csrf_token }}";
+            const url = `toggle/${bookId}/`;
+
+            fetch(url, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": csrfToken,
+                    "Content-Type": "application/json",
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (data.is_favourite) {
+                        this.textContent = "Remove from favourites";
+                    } else {
+                        this.textContent = "Add to favourites";
+                    }
+                } else {
+                    alert(data.message || "Something went wrong");
+                }
+            })
+            .catch(error => console.error("Error:", error));
+        });
+    });
+});
+</script>

@@ -3,6 +3,8 @@ from django.views.generic import ListView, CreateView, View
 from django.shortcuts import redirect
 from django.contrib.auth import authenticate, login, logout
 from django.http.response import HttpResponse
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
 
 from library.filters import BookFilter
 from library.forms import BookForm, CategoryForm, LoginForm, SignInForm
@@ -73,7 +75,7 @@ class BookDeleteView(View):
         return redirect("book-list")
 
 
-class CategoryAdd(View):
+class CategoryAddView(View):
     def get(self, request, *args, **kwargs):
         category_form = CategoryForm()
         return render(request, 'category_form.html', {
@@ -91,7 +93,7 @@ class CategoryAdd(View):
         })
 
 
-class SignIn(View):
+class SignInView(View):
     def get(self, request, *args, **kwargs):
         sign_in_form = SignInForm()
         return render(request, 'sign_in_form.html', {
@@ -108,7 +110,7 @@ class SignIn(View):
         })
 
 
-class Login(View):
+class LoginView(View):
     def get(self, request, *args, **kwargs):
         login_form = LoginForm()
         return render(request, 'login_form.html', {
@@ -129,32 +131,38 @@ class Login(View):
             })
 
 
-class Logout(View):
+class LogoutView(View):
     def get(self, request, *args, **kwargs):
         logout(request)
         return redirect('book-list')
 
 
-class FavouriteBooks(View):
+class FavouriteBooksView(View):
     def get(self, request, *args, **kwargs):
         favourite_books = Book.objects.filter(favourites=request.user)
         return render(request, 'book_fav.html', {
             'books': favourite_books
         })
+    
 
+class ToggleFavouriteBookView(View):
+    def post(self, request, book_id, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return JsonResponse({
+                "success": False,
+                "message": "Unauthorized",
+            }, status=401)
+        
+        book = Book.objects.get(id=book_id)
 
-class AddFavouriteBook(View):
-    def get(self, request, book_id, *args, **kwargs):
-        if request.user.is_authenticated:
-            book = Book.objects.get(id=book_id)
-            book.favourites.add(request.user)
-            return redirect('book-list')
-        return HttpResponse("Unauthorized", status=401)
-
-class RemoveFavouriteBook(View):
-    def get(self, request, book_id, *args, **kwargs):
-        if request.user.is_authenticated:
-            book = Book.objects.get(id=book_id)
+        if request.user in book.favourites.all():
             book.favourites.remove(request.user)
-            return redirect('book-list')
-        return HttpResponse("Unauthorized", status=401)
+            is_favourite = False
+        else:
+            book.favourites.add(request.user)
+            is_favourite = True
+
+        return JsonResponse({
+            "success": True,
+            "is_favourite": is_favourite
+        })
