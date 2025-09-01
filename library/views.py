@@ -1,9 +1,10 @@
 from django.shortcuts import render
 from django.views.generic import ListView, CreateView, View
 from django.shortcuts import redirect
+from django.contrib.auth import authenticate, login, logout
 
 from library.filters import BookFilter
-from library.forms import BookForm, CategoryForm
+from library.forms import BookForm, CategoryForm, LoginForm
 from library.models import Book
 
 
@@ -87,3 +88,32 @@ class CategoryAdd(View):
         return render(request, 'category_form.html', {
             'form': category_form
         })
+
+
+class Login(View):
+    def get(self, request, *args, **kwargs):
+        login_form = LoginForm()
+        return render(request, 'login_form.html', {
+            'form': login_form
+        })
+    
+    def post(self, request, *args, **kwargs):
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(request, 
+                            username=username, 
+                            password=password)
+        if user is not None:
+            login(request, user)
+            return redirect('book-list')
+        else:
+            login_form = LoginForm(request.POST)
+            return render(request, 'login_form.html', {
+            'form': login_form
+        })
+
+
+class Logout(View):
+    def get(self, request, *args, **kwargs):
+        logout(request)
+        return redirect('book-list')
