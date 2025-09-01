@@ -18,10 +18,11 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from library.views import Login, Logout
+from library.views import Login, Logout, SignIn
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('sign-in/', SignIn.as_view(), name='sign-in'),
     path('login/', Login.as_view(), name='login'),
     path('logout/', Logout.as_view(), name='logout'),
     path('library/', include('library.urls')),

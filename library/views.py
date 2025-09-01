@@ -5,7 +5,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.http.response import HttpResponse
 
 from library.filters import BookFilter
-from library.forms import BookForm, CategoryForm, LoginForm
+from library.forms import BookForm, CategoryForm, LoginForm, SignInForm
 from library.models import Book
 
 
@@ -91,6 +91,23 @@ class CategoryAdd(View):
         })
 
 
+class SignIn(View):
+    def get(self, request, *args, **kwargs):
+        sign_in_form = SignInForm()
+        return render(request, 'sign_in_form.html', {
+            'form': sign_in_form
+        })
+
+    def post(self, request, *args, **kwargs):
+        sign_in_form = SignInForm(request.POST)
+        if sign_in_form.is_valid():
+            sign_in_form.save()
+            return redirect('book-list')
+        return render(request, 'sign_in_form.html', {
+            'form': sign_in_form
+        })
+
+
 class Login(View):
     def get(self, request, *args, **kwargs):
         login_form = LoginForm()
@@ -99,19 +116,17 @@ class Login(View):
         })
     
     def post(self, request, *args, **kwargs):
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        user = authenticate(request, 
-                            username=username, 
-                            password=password)
-        if user is not None:
+        login_form = LoginForm(request, data=request.POST)
+        if login_form.is_valid():
+            user = login_form.get_user()
             login(request, user)
             return redirect('book-list')
         else:
-            login_form = LoginForm(request.POST)
+            error_message = 'username or password is incorrect'
             return render(request, 'login_form.html', {
-            'form': login_form
-        })
+                'form': login_form,
+                'error_message': error_message
+            })
 
 
 class Logout(View):

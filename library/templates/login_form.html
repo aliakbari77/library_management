@@ -1,5 +1,16 @@
 <form method="post">
     {% csrf_token %}
-    {{ form.as_p }}
-    <input type="submit" value="Login">
+    <!-- {{ form.non_field_errors }} -->
+    <p>
+        {{ form.username.label_tag }} {{ form.username }}
+        {{ form.username.errors }}
+    </p>
+    <p>
+        {{ form.password.label_tag }} {{ form.password }}
+        {{ form.password.errors }}
+    </p>
+    {% if error_message %}
+        <p >{{ error_message }}</p>
+    {% endif %}
+    <button type="submit">Login</button>
 </form>
