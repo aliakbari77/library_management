@@ -12,23 +12,7 @@ class Member(AbstractUser):
 
 
 class Category(models.Model):
-    class CategoryChoices(models.TextChoices):
-        BIOGRAPHIE = "BIO", _("Biographie")
-        BUSINESS = "BUSI", _("Business")
-        COMICS = "COMI", _("Comics")
-        TECHNOLOGY = "TECH", _("Technology")
-        COOKING = "COOK", _("Cooking")
-        EDUCATIONAL = "EDU", _("Educational")
-        ENTERTAINMENT = "ENT", _("Entertainment")
-        HEALTH = "HEA", _("Health")
-        HISTORY = "HIS", _("History")
-        ROMANCE = "ROM", _("Romance")
-        SPORT = "SPO", _("Sport")
-        SCIFI = "SCI", _("Science Fiction")
-
-    name = models.CharField(max_length=100, 
-                            choices=CategoryChoices.choices, 
-                            default=CategoryChoices.BIOGRAPHIE)
+    name = models.CharField(max_length=100)
     
     def __str__(self):
         return self.name

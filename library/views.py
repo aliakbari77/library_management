@@ -3,7 +3,7 @@ from django.views.generic import ListView, CreateView, View
 from django.shortcuts import redirect
 
 from library.filters import BookFilter
-from library.forms import BookForm
+from library.forms import BookForm, CategoryForm
 from library.models import Book
 
 
@@ -68,4 +68,22 @@ class BookDeleteView(View):
     def get(self, request, book_id, *args, **kwargs):
         book = Book.objects.get(id=book_id)
         book.delete()
-        return redirect("book-list")    
+        return redirect("book-list")
+
+
+class CategoryAdd(View):
+    def get(self, request, *args, **kwargs):
+        category_form = CategoryForm()
+        return render(request, 'category_form.html', {
+            'form': category_form
+        })
+    
+    def post(self, request, *args, **kwargs):
+        category_form = CategoryForm(request.POST)
+        if category_form.is_valid():
+            category_form.save()
+            return redirect('book-list')
+        
+        return render(request, 'category_form.html', {
+            'form': category_form
+        })
