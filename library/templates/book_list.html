@@ -1,3 +1,21 @@
+<form method="get">
+    <input type="text" name="search" placeholder="Search books..." value="{{ request.GET.search }}">
+    <button type="submit">Search</button>
+</form>
+<form method="get">
+    <div>
+      {{ filterset.form.category }}
+    </div>
+    <input type="date" name="start" value="{{ request.GET.start }}">
+    <input type="date" name="end" value="{{ request.GET.end }}">
+    <input type="number" name="min_price" placeholder="Min price" value="{{ request.GET.min_price }}">
+    <input type="number" name="max_price" placeholder="Max price" value="{{ request.GET.max_price }}">
+    <button type="submit">Filter</button>
+</form>
+<form method="post">
+    {% csrf_token %}
+    <button type="submit" onclick="return confirm('Are you sure you want to delete selected books?')">Delete all</button>
+</form>
 <h1>Book</h1>
 <a href="add/">add book</a>
 {% for book in books %}
@@ -14,7 +32,15 @@
       {% empty %}
         <em>No authors available</em>
       {% endfor %}
-    </p>
+  </p>
+  <p><strong>Categories:</strong>
+      {% for category in book.category.all %}
+        {{ category.name }}{% if not forloop.last %}, {% endif %}
+      {% empty %}
+        <em>No category available</em>
+      {% endfor %}
+  </p>
   <p>Published: {{ book.published_date }}</p>
   <p>Summary: {{ book.summary }}</p>
+  <p><strong>Price:</strong> {{ book.price }}</p>
 {% endfor %}

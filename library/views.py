@@ -2,19 +2,29 @@ from django.shortcuts import render
 from django.views.generic import ListView, CreateView, View
 from django.shortcuts import redirect
 
+from library.filters import BookFilter
 from library.forms import BookForm
 from library.models import Book
 
-class BookListView(View):
+
+class BookListView(View):    
     def get_queryset(self):
         queryset = Book.objects.all()
-        return queryset
+        self.filterset = BookFilter(self.request.GET, queryset=queryset)
+        return self.filterset.qs
 
     def get(self, request, *args, **kwargs):
         books = self.get_queryset()
 
         return render(request, "book_list.html", 
-                      {'books': books})
+                      {'books': books, 
+                       'filterset': self.filterset})
+    
+    def post(self, request, *args, **kwargs):
+        books = self.get_queryset()
+        for book in books:
+            book.delete()
+        return redirect("book-list")
     
 
 class BookAddView(View):

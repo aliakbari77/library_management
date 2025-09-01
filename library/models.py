@@ -63,7 +63,7 @@ class Book(models.Model):
                                         default=None, 
                                         blank=True)
     title = models.CharField(max_length=100)
-    published_date = models.DateField(default=None)
+    published_date = models.DateField(default=None, null=True)
     updated_at = models.DateTimeField(auto_now=True)
     price = models.FloatField(null=True, blank=True)
     pages = models.PositiveIntegerField(null=True, blank=True)
