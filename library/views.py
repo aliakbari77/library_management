@@ -117,3 +117,11 @@ class Logout(View):
     def get(self, request, *args, **kwargs):
         logout(request)
         return redirect('book-list')
+
+
+class FavouriteBooks(View):
+    def get(self, request, *args, **kwargs):
+        favourite_books = Book.objects.filter(favourites=request.user)
+        return render(request, 'book_fav.html', {
+            'books': favourite_books
+        })

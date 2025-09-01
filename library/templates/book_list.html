@@ -1,6 +1,7 @@
 {% if not request.user.is_authenticated %}
-    <a href="{% url 'login' %}">login</a>
-{% elif request.user.is_authenticated %}
+  <a href="{% url 'login' %}">login</a>
+  {% elif request.user.is_authenticated %}
+    <a href="{% url 'book-favourite' %}">favourite book</a>
     <a href="{% url 'logout' %}">logout</a>
 {% endif %}
 <form method="get">
@@ -27,7 +28,7 @@
 {% for book in books %}
   <a href="{% url 'book-detail' book.pk %}">
     <h2>{{ book.title }}</h2>
-  </a>o
+  </a>
   <a href="{% url 'book-delete' book.pk %}">Delete</a>
   {% if book.picture %}
   <img src="{{ book.picture.url }}" alt="{{ book.picture.url }}">
