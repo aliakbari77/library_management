@@ -1,97 +1,228 @@
-{% if not request.user.is_authenticated %}
-  <a href="{% url 'login' %}">login</a>
-  <a href="{% url 'sign-in' %}">sign in</a>
-  {% elif request.user.is_authenticated %}
-    <a href="{% url 'book-favourite' %}">favourite book</a>
-    <a href="{% url 'logout' %}">logout</a>
-{% endif %}
-<form method="get">
-    <input type="text" name="search" placeholder="Search books..." value="{{ request.GET.search }}">
-    <button type="submit">Search</button>
-</form>
-<form method="get">
-    <div>
-      {{ filterset.form.category }}
+{% extends "base.html" %}
+{% load widget_tweaks %}
+{% block title %}Books{% endblock %}
+{% block content %}
+
+<div class="row">
+    <!-- Filter Sidebar -->
+    <div class="col-lg-3 col-md-4 mb-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-primary text-white fw-bold">
+                🔍 Filters
+            </div>
+            <div class="card-body">
+                <form method="get">
+                    <!-- Search -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Search</label>
+                        {% render_field filterset.form.search class="form-control" placeholder="Search by title or author" %}
+                    </div>
+
+                    <!-- Price Range -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Price Range ($)</label>
+                        <div class="d-flex gap-2">
+                            {% render_field filterset.form.min_price class="form-control" placeholder="Min" %}
+                            {% render_field filterset.form.max_price class="form-control" placeholder="Max" %}
+                        </div>
+                    </div>
+
+                    <!-- Published Date -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Published Date</label>
+                        <div class="d-flex gap-2">
+                            {% render_field filterset.form.start class="form-control" %}
+                            {% render_field filterset.form.end class="form-control" %}
+                        </div>
+                    </div>
+
+                    <!-- Categories -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Categories</label>
+                        <div class="border rounded p-2" style="max-height: 180px; overflow-y: auto;">
+                            {% for checkbox in filterset.form.category %}
+                                <div class="form-check">
+                                    {{ checkbox.tag }}
+                                    <label class="form-check-label" for="{{ checkbox.id_for_label }}">
+                                        {{ checkbox.choice_label }}
+                                    </label>
+                                </div>
+                            {% empty %}
+                                <p class="text-muted">No categories available</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Buttons -->
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">Apply Filters</button>
+                        <a href="{% url 'book-list' %}" class="btn btn-outline-secondary">Clear Filters</a>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
-    <input type="date" name="start" value="{{ request.GET.start }}">
-    <input type="date" name="end" value="{{ request.GET.end }}">
-    <input type="number" name="min_price" placeholder="Min price" value="{{ request.GET.min_price }}">
-    <input type="number" name="max_price" placeholder="Max price" value="{{ request.GET.max_price }}">
-    <button type="submit">Filter</button>
-</form>
-<form method="post">
-    {% csrf_token %}
-    <button type="submit" onclick="return confirm('Are you sure you want to delete selected books?')">Delete all</button>
-</form>
-<h1>Book</h1>
-{% if request.user.is_authenticated %}
-  <a href="{% url 'book-add' %}">add book</a>
-  <a href="{% url 'category-add' %}">add category</a>
-{% endif %}
-{% for book in books %}
-  <a href="{% url 'book-detail' book.pk %}">
-    <h2>{{ book.title }}</h2>
-  </a>
-  <button 
-      class="fav-btn" 
-      data-book-id="{{ book.id }}">
-      {% if user in book.favourites.all %}
-          Remove from favourites
-      {% else %}
-          Add to favourites
-      {% endif %}
-  </button>
-  {% if book.picture %}
-  <img src="{{ book.picture.url }}" alt="{{ book.picture.url }}">
-  {% endif %}
-  <p><strong>Authors:</strong>
-      {% for author in book.authors.all %}
-        {{ author.first_name }} {{ author.last_name }}{% if not forloop.last %}, {% endif %}
-      {% empty %}
-        <em>No authors available</em>
-      {% endfor %}
-  </p>
-  <p><strong>Categories:</strong>
-      {% for category in book.category.all %}
-        {{ category.name }}{% if not forloop.last %}, {% endif %}
-      {% empty %}
-        <em>No category available</em>
-      {% endfor %}
-  </p>
-  <p>Published: {{ book.published_date }}</p>
-  <p>Summary: {{ book.summary }}</p>
-  <p><strong>Price:</strong> {{ book.price }}</p>
-{% endfor %}
+
+    <!-- Books List -->
+    <div class="col-lg-9 col-md-8">
+        <!-- Action Buttons -->
+        {% if user.is_authenticated %}
+        <div class="d-flex justify-content-end gap-2 mb-3">
+            <!-- Add Book Button -->
+            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addBookModal">
+                <i class="fa-solid fa-plus"></i> Add Book
+            </button>
+            <!-- Add Category Button -->
+            <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+                <i class="fa-solid fa-layer-group"></i> Add Category
+            </button>
+        </div>
+        {% endif %}
+
+        <!-- Books Grid -->
+        <div class="row g-4">
+            {% for book in books %}
+            <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6">
+                <div class="card shadow-sm border-0 h-100">
+                    {% if book.picture %}
+                    <img src="{{ book.picture.url }}" class="card-img-top" style="height: 180px; object-fit: cover;">
+                    {% else %}
+                    <img src="https://via.placeholder.com/200x180.png?text=No+Image" class="card-img-top">
+                    {% endif %}
+                    <div class="card-body d-flex flex-column">
+                        <h6 class="card-title">{{ book.title }}</h6>
+                        <p class="text-muted small mb-1">Price: ${{ book.price }}</p>
+                        <p class="text-muted small">Published: {{ book.published_date }}</p>
+                        <p class="card-text text-muted small">
+                            <span class="text-muted small">Categories: </span>
+                            {% for category in book.category.all %}
+                                <span class="badge bg-info text-dark border">{{ category.name }}</span>
+                            {% empty %}
+                                <span class="text-muted">No Category</span>
+                            {% endfor %}
+                        </p>
+                        <div class="mt-auto d-flex justify-content-between">
+                            <a href="{% url 'book-detail' book.pk %}" class="btn btn-sm btn-outline-primary">Details</a>
+                            {% if user.is_authenticated %}
+                               <button class="btn btn-sm favourite-btn {% if user in book.favourites.all %}btn-danger{% else %}btn-outline-warning{% endif %}" 
+                                        data-book-id="{{ book.pk }}">
+                                    {% if user in book.favourites.all %}★ Remove{% else %}☆ Favourite{% endif %}
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-muted text-center">No books found matching your filters.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Add Book Modal -->
+<div class="modal fade" id="addBookModal" tabindex="-1" aria-labelledby="addBookModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <form method="post" enctype="multipart/form-data" action="{% url 'book-add' %}">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title" id="addBookModalLabel">Add New Book</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <!-- Title -->
+          <div class="mb-3">
+              {{ book_form.title }}
+          </div>
+
+          <!-- Authors & Categories Row -->
+          <div class="row mb-3">
+              <div class="col-md-6">
+                  <label class="form-label fw-semibold">Authors</label>
+                  {{ book_form.authors }}
+              </div>
+              <div class="col-md-6">
+                  <label class="form-label fw-semibold">Categories</label>
+                  {{ book_form.category }}
+              </div>
+          </div>
+
+          <!-- Publisher & Published Date Row -->
+          <div class="row mb-3">
+              <div class="col-md-6">
+                  <label class="form-label fw-semibold">Publisher</label>
+                  {{ book_form.publisher }}
+              </div>
+              <div class="col-md-6">
+                  <label class="form-label fw-semibold">Published Date</label>
+                  {{ book_form.published_date }}
+              </div>
+          </div>
+
+          <!-- Book Cover -->
+          <div class="mb-3">
+              {{ book_form.picture }}
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-success">Add Book</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- Add Category Modal -->
+<div class="modal fade" id="addCategoryModal" tabindex="-1" aria-labelledby="addCategoryModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post" action="{% url 'category-add' %}">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title" id="addCategoryModalLabel">Add New Category</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          {{ category_form.as_p }}
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-warning">Add Category</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 
 <script>
-document.addEventListener("DOMContentLoaded", function() {
-    document.querySelectorAll(".fav-btn").forEach(button => {
-        button.addEventListener("click", function() {
-            const bookId = this.dataset.bookId;
-            const csrfToken = "{{ csrf_token }}";
-            const url = `favourite/toggle/${bookId}/`;
+document.addEventListener('DOMContentLoaded', () => {
+    const favButtons = document.querySelectorAll('.favourite-btn');
 
-            fetch(url, {
-                method: "POST",
-                headers: {
-                    "X-CSRFToken": csrfToken,
-                    "Content-Type": "application/json",
-                },
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    if (data.is_favourite) {
-                        this.textContent = "Remove from favourites";
-                    } else {
-                        this.textContent = "Add to favourites";
+    favButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const bookId = btn.dataset.bookId;
+
+            fetch(`favourite/toggle/${bookId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'added') {
+                        btn.classList.remove('btn-outline-warning');
+                        btn.classList.add('btn-danger');
+                        btn.textContent = '★ Remove';
+                    } else if (data.status === 'removed') {
+                        btn.classList.remove('btn-danger');
+                        btn.classList.add('btn-outline-warning');
+                        btn.textContent = '☆ Favourite';
                     }
-                } else {
-                    alert(data.message || "Something went wrong");
-                }
-            })
-            .catch(error => console.error("Error:", error));
+                })
+                .catch(err => console.error(err));
         });
     });
 });
 </script>
+{% endblock %}

@@ -20,9 +20,12 @@ class BookListView(View):
     def get(self, request, *args, **kwargs):
         books = self.get_queryset()
 
-        return render(request, "book_list.html", 
-                      {'books': books, 
-                       'filterset': self.filterset})
+        return render(request, "book_list.html", {
+            'books': books,
+            'filterset': self.filterset,
+            'book_form': BookForm(),
+            'category_form': CategoryForm(),
+        })
     
     def post(self, request, *args, **kwargs):
         books = self.get_queryset()
@@ -132,7 +135,7 @@ class LoginView(View):
 
 
 class LogoutView(View):
-    def get(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         logout(request)
         return redirect('book-list')
 
@@ -146,23 +149,19 @@ class FavouriteBooksView(View):
     
 
 class ToggleFavouriteBookView(View):
-    def post(self, request, book_id, *args, **kwargs):
+    def get(self, request, book_id, *args, **kwargs):
         if not request.user.is_authenticated:
-            return JsonResponse({
-                "success": False,
-                "message": "Unauthorized",
-            }, status=401)
-        
-        book = Book.objects.get(id=book_id)
+            return JsonResponse({'error': 'Unauthorized'}, status=401)
 
+        book = Book.objects.get(id=book_id)
         if request.user in book.favourites.all():
             book.favourites.remove(request.user)
-            is_favourite = False
+            status = 'removed'
         else:
             book.favourites.add(request.user)
-            is_favourite = True
+            status = 'added'
 
         return JsonResponse({
-            "success": True,
-            "is_favourite": is_favourite
+            'status': status,
+            'favourite_count': book.favourites.count()
         })

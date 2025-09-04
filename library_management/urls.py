@@ -22,7 +22,7 @@ from library.views import LoginView, LogoutView, SignInView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('sign-in/', SignInView.as_view(), name='sign-in'),
+    path('sign-up/', SignInView.as_view(), name='sign-up'),
     path('login/', LoginView.as_view(), name='login'),
     path('logout/', LogoutView.as_view(), name='logout'),
     path('library/', include('library.urls')),

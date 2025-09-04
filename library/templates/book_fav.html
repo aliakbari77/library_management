@@ -1,45 +1,74 @@
-{% for book in books %}
-<h1>{{ book.title }}</h1>
-    <button 
-      class="fav-btn" 
-      data-book-id="{{ book.id }}">
-      {% if user in book.favourites.all %}
-          Remove from favourites
-      {% else %}
-          Add to favourites
-      {% endif %}
-  </button>
-{% endfor %}
+{% extends "base.html" %}
+{% block title %}My Favourite Books{% endblock %}
+{% block content %}
 
+<div class="container mt-4">
+    <h2 class="mb-4">⭐ My Favourite Books</h2>
+
+    {% if books %}
+    <div class="row g-4">
+        {% for book in books %}
+        <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6">
+            <div class="card shadow-sm border-0 h-100">
+                {% if book.picture %}
+                <img src="{{ book.picture.url }}" class="card-img-top" style="height: 180px; object-fit: cover;">
+                {% else %}
+                <img src="https://via.placeholder.com/200x180.png?text=No+Image" class="card-img-top">
+                {% endif %}
+
+                <div class="card-body d-flex flex-column">
+                    <h6 class="card-title">{{ book.title }}</h6>
+                    <p class="text-muted small mb-1">Price: ${{ book.price }}</p>
+                    <p class="text-muted small">Published: {{ book.published_date }}</p>
+                    <p class="card-text text-muted small">
+                        {% for category in book.category.all %}
+                            <span class="badge bg-info text-dark border">{{ category.name }}</span>
+                        {% empty %}
+                            <span class="text-muted">No Category</span>
+                        {% endfor %}
+                    </p>
+
+                    <div class="mt-auto d-flex justify-content-between">
+                        <a href="{% url 'book-detail' book.pk %}" class="btn btn-sm btn-outline-primary">Details</a>
+
+                        {% if user.is_authenticated %}
+                        <button class="btn btn-sm btn-danger favourite-btn" data-book-id="{{ book.pk }}">
+                            ★ Remove
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+        <p class="text-center text-muted">You haven’t added any favourite books yet.</p>
+    {% endif %}
+</div>
+
+<!-- AJAX Script for Remove Favourite -->
 <script>
-document.addEventListener("DOMContentLoaded", function() {
-    document.querySelectorAll(".fav-btn").forEach(button => {
-        button.addEventListener("click", function() {
-            const bookId = this.dataset.bookId;
-            const csrfToken = "{{ csrf_token }}";
-            const url = `toggle/${bookId}/`;
+document.addEventListener('DOMContentLoaded', () => {
+    const favButtons = document.querySelectorAll('.favourite-btn');
 
-            fetch(url, {
-                method: "POST",
-                headers: {
-                    "X-CSRFToken": csrfToken,
-                    "Content-Type": "application/json",
-                },
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    if (data.is_favourite) {
-                        this.textContent = "Remove from favourites";
-                    } else {
-                        this.textContent = "Add to favourites";
+    favButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const bookId = btn.dataset.bookId;
+
+            fetch(`toggle/${bookId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'removed') {
+                        // Remove the book card from the DOM
+                        const card = btn.closest('.col-xl-3, .col-lg-4, .col-md-6');
+                        card.remove();
                     }
-                } else {
-                    alert(data.message || "Something went wrong");
-                }
-            })
-            .catch(error => console.error("Error:", error));
+                })
+                .catch(err => console.error(err));
         });
     });
 });
 </script>
+
+{% endblock %}
