@@ -21,7 +21,7 @@ class BookListView(View):
     def get(self, request, *args, **kwargs):
         books = self.get_queryset()
         paginator = Paginator(books, 6)
-        page_number = request.GET.get("page", 1)
+        page_number = request.GET.get("page")
 
         page_obj = paginator.get_page(page_number)
 

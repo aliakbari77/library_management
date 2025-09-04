@@ -3,6 +3,26 @@
 {% block title %}Books{% endblock %}
 {% block content %}
 
+<style>
+.book-card {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.5s ease-in-out;
+}
+
+.book-card.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Hover effect */
+.book-card:hover {
+    transform: translateY(-5px) scale(1.03);
+    /* box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); */
+    transition: all 0.3s ease-in-out;
+}
+</style>
+
 <div class="row">
     <!-- Filter Sidebar -->
     <div class="col-lg-3 col-md-4 mb-4">
@@ -84,7 +104,7 @@
         <!-- Books Grid -->
         <div class="row g-4">
             {% for book in books %}
-            <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6">
+            <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 book-card">
                 <div class="card shadow-sm border-0 h-100">
                     {% if book.picture %}
                     <img src="{{ book.picture.url }}" class="card-img-top" style="height: 180px; object-fit: cover;">
@@ -283,6 +303,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 })
                 .catch(err => console.error(err));
         });
+    });
+
+    const cards = document.querySelectorAll('.book-card');
+    cards.forEach((card, index) => {
+        setTimeout(() => {
+            card.classList.add('show');
+        }, index * 100); // staggered animation
     });
 });
 </script>
