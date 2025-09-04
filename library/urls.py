@@ -1,5 +1,5 @@
 from django.urls import path
-from library.views import (BookAddView, 
+from library.views import (BookAddView, BookDeleteFilterView, 
                            BookDeleteView, 
                            BookDetailView,
                            BookEditView, 
@@ -13,6 +13,7 @@ urlpatterns = [
     path('book/add/', BookAddView.as_view(), name='book-add'),
     path('book/edit/<int:book_id>/', BookEditView.as_view(), name='book-edit'),
     path('book/detail/<int:book_id>/', BookDetailView.as_view(), name='book-detail'),
+    path('book/delete/filter/', BookDeleteFilterView.as_view(), name='book-delete-filter'),
     path('book/delete/<int:book_id>/', BookDeleteView.as_view(), name='book-delete'),
     path('book/category/add/', CategoryAddView.as_view(), name="category-add"),
     path('book/favourite/', FavouriteBooksView.as_view(), name='book-favourite'),

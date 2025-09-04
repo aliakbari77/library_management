@@ -19,7 +19,7 @@ class BookListView(View):
             if not data[key]:
                 del data[key]  # remove empty fields
         queryset = Book.objects.all()
-        self.filterset = BookFilter(self.request.GET, queryset=queryset)
+        self.filterset = BookFilter(data, queryset=queryset)
         return self.filterset.qs
 
     def get(self, request, *args, **kwargs):
@@ -76,15 +76,56 @@ class BookEditView(View):
 
 class BookDetailView(View):
     def get(self, request, book_id, *args, **kwargs):
-        book = Book.objects.get(id=book_id)
-        return render(request, 'book_detail.html', {'book': book})
+        try:
+            book = get_object_or_404(Book, id=book_id)
+            if book:
+                return render(request, 'book_detail.html', {'book': book})
+        except:
+            return render(request, 'book_detail.html', {})
+    
+    
     
 
 class BookDeleteView(View):
-    def get(self, request, book_id, *args, **kwargs):
-        book = Book.objects.get(id=book_id)
-        book.delete()
-        return redirect("book-list")
+    def delete(self, request, book_id, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return JsonResponse({"status": "error", "message": "You must be logged in to delete books."}, status=403)
+        
+        try:
+            book = get_object_or_404(Book, id=book_id)
+            book.delete()
+
+            return JsonResponse({
+                "status": "success",
+                "message": f"Book '{book.title}' deleted successfully."
+            })
+        except:
+            return JsonResponse({
+                "status": "error",
+                "message": "Error while deleting book."
+            })
+
+
+class BookDeleteFilterView(View):
+    def get_queryset(self):
+        data = self.request.GET.copy()
+        for key in list(data.keys()):
+            if not data[key]:
+                del data[key]  # remove empty fields
+        queryset = Book.objects.all()
+        self.filterset = BookFilter(data, queryset=queryset)
+        return self.filterset.qs
+
+    def delete(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+
+        count = queryset.count()
+        queryset.delete()
+
+        return JsonResponse({
+            "status": "success",
+            "message": f"{count} book{'s' if count != 1 else ''} deleted successfully."
+        })
 
 
 class CategoryAddView(View):
@@ -158,19 +199,21 @@ class FavouriteBooksView(View):
     
 
 class ToggleFavouriteBookView(View):
-    def get(self, request, book_id, *args, **kwargs):
+    def post(self, request, book_id, *args, **kwargs):
         if not request.user.is_authenticated:
-            return JsonResponse({'error': 'Unauthorized'}, status=401)
+            return JsonResponse({"success": False, "error": "Authentication required"}, status=401)
 
-        book = Book.objects.get(id=book_id)
+        book = get_object_or_404(Book, id=book_id)
+        is_favourite = False
+
         if request.user in book.favourites.all():
             book.favourites.remove(request.user)
-            status = 'removed'
         else:
             book.favourites.add(request.user)
-            status = 'added'
+            is_favourite = True
 
         return JsonResponse({
-            'status': status,
-            'favourite_count': book.favourites.count()
+            "success": True,
+            "is_favourite": is_favourite,
+            "book_id": book_id,
         })
