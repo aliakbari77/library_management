@@ -41,7 +41,7 @@ class BookListView(View):
         for book in books:
             book.delete()
         return redirect("book-list")
-    
+
 
 class BookAddView(View):
     def get(self, request, *args, **kwargs):
@@ -62,16 +62,16 @@ class BookEditView(View):
     def get(self, request, book_id, *args, **kwargs):
         book = Book.objects.get(id=book_id)
         book_form = BookForm(instance=book)
-        return render(request, 'book_form.html', {'book': book, 'form': book_form})
+        return render(request, 'book_edit_form.html', {'book': book, 'form': book_form})
 
     def post(self, request, book_id, *args, **kwargs):
         book = Book.objects.get(id=book_id)
         book_form = BookForm(request.POST, request.FILES, instance=book)
         if book_form.is_valid():
             book_form.save()
-            return redirect("book-list")
+            return JsonResponse({'success': True, 'message': 'Book updated successfully!'})
         else:
-            return render(request, 'book_form.html', {'book': book, 'form': book_form})
+            return render(request, 'book_edit_form.html', {'book': book, 'form': book_form})
         
 
 class BookDetailView(View):
@@ -84,8 +84,6 @@ class BookDetailView(View):
             return render(request, 'book_detail.html', {})
     
     
-    
-
 class BookDeleteView(View):
     def delete(self, request, book_id, *args, **kwargs):
         if not request.user.is_authenticated:

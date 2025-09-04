@@ -18,4 +18,5 @@ urlpatterns = [
     path('book/category/add/', CategoryAddView.as_view(), name="category-add"),
     path('book/favourite/', FavouriteBooksView.as_view(), name='book-favourite'),
     path('book/favourite/toggle/<int:book_id>/', ToggleFavouriteBookView.as_view(), name='book-favourite-toggle'),
+    path('book/edit/<int:book_id>/', BookEditView.as_view(), name='book-edit')
 ]
