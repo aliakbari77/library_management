@@ -31,7 +31,7 @@
                 🔍 Filters
             </div>
             <div class="card-body">
-                <form method="get">
+                <form method="get" id="filter-form">
                     <!-- Search -->
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Search</label>
@@ -310,6 +310,15 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
             card.classList.add('show');
         }, index * 100); // staggered animation
+    });
+
+    document.getElementById('filter-form').addEventListener('submit', function(e) {
+    const inputs = this.querySelectorAll('input, select');
+    inputs.forEach(input => {
+            if (!input.value) {
+                input.removeAttribute('name'); // remove empty fields from submission
+            }
+        });
     });
 });
 </script>

@@ -14,6 +14,10 @@ from library.models import Book
 
 class BookListView(View):    
     def get_queryset(self):
+        data = self.request.GET.copy()
+        for key in list(data.keys()):
+            if not data[key]:
+                del data[key]  # remove empty fields
         queryset = Book.objects.all()
         self.filterset = BookFilter(self.request.GET, queryset=queryset)
         return self.filterset.qs
