@@ -29,11 +29,13 @@
 
                     <!-- Published Date -->
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Published Date</label>
-                        <div class="d-flex gap-2">
-                            {% render_field filterset.form.start class="form-control" %}
-                            {% render_field filterset.form.end class="form-control" %}
-                        </div>
+                        <label class="form-label fw-semibold">Published Start Date</label>
+                        {% render_field filterset.form.start class="form-control" %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Published End Date</label>
+                        {% render_field filterset.form.end class="form-control" %}
                     </div>
 
                     <!-- Categories -->
@@ -91,10 +93,18 @@
                     {% endif %}
                     <div class="card-body d-flex flex-column">
                         <h6 class="card-title">{{ book.title }}</h6>
-                        <p class="text-muted small mb-1">Price: ${{ book.price }}</p>
+                        <p class="text-muted small mb-1">Price: {{ book.price }}$</p>
                         <p class="text-muted small">Published: {{ book.published_date }}</p>
+                        <p class="text-muted small">
+                            <span>Authors: </span>
+                            {% for author in book.authors.all %}
+                                <span class="text-muted small">{{ author }}</span>
+                            {% empty %}
+                                <span class="text-muted small">No Author</span>
+                            {% endfor %}
+                        </p>
                         <p class="card-text text-muted small">
-                            <span class="text-muted small">Categories: </span>
+                            <span>Categories: </span>
                             {% for category in book.category.all %}
                                 <span class="badge bg-info text-dark border">{{ category.name }}</span>
                             {% empty %}
@@ -198,6 +208,57 @@
     </div>
   </div>
 </div>
+{% if books.has_other_pages %}
+<nav aria-label="Page navigation">
+  <ul class="pagination justify-content-center mt-4">
+
+    <!-- Previous Button -->
+    {% if books.has_previous %}
+      <li class="page-item">
+        <a class="page-link" href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page={{ books.previous_page_number }}" aria-label="Previous">
+          &laquo; Previous
+        </a>
+      </li>
+    {% else %}
+      <li class="page-item disabled">
+        <span class="page-link">&laquo; Previous</span>
+      </li>
+    {% endif %}
+
+    <!-- Page Numbers -->
+    {% for page_num in books.paginator.page_range %}
+        {% if books.number == page_num %}
+            <li class="page-item active"><span class="page-link">{{ page_num }}</span></li>
+        {% elif page_num > books.number|add:-3 and page_num < books.number|add:3 %}
+            <li class="page-item">
+                <a class="page-link" href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page={{ page_num }}">{{ page_num }}</a>
+            </li>
+        {% elif page_num == 1 or page_num == books.paginator.num_pages %}
+            <li class="page-item">
+                <a class="page-link" href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page={{ page_num }}">{{ page_num }}</a>
+            </li>
+        {% elif forloop.first or forloop.last %}
+            <li class="page-item disabled"><span class="page-link">…</span></li>
+        {% endif %}
+    {% endfor %}
+
+    <!-- Next Button -->
+    {% if books.has_next %}
+      <li class="page-item">
+        <a class="page-link" href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page={{ books.next_page_number }}" aria-label="Next">
+          Next &raquo;
+        </a>
+      </li>
+    {% else %}
+      <li class="page-item disabled">
+        <span class="page-link">Next &raquo;</span>
+      </li>
+    {% endif %}
+
+  </ul>
+</nav>
+{% endif %}
+
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {

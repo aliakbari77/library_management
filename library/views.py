@@ -5,6 +5,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.http.response import HttpResponse
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
+from django.core.paginator import Paginator
 
 from library.filters import BookFilter
 from library.forms import BookForm, CategoryForm, LoginForm, SignInForm
@@ -19,9 +20,13 @@ class BookListView(View):
 
     def get(self, request, *args, **kwargs):
         books = self.get_queryset()
+        paginator = Paginator(books, 6)
+        page_number = request.GET.get("page", 1)
+
+        page_obj = paginator.get_page(page_number)
 
         return render(request, "book_list.html", {
-            'books': books,
+            'books': page_obj,
             'filterset': self.filterset,
             'book_form': BookForm(),
             'category_form': CategoryForm(),
